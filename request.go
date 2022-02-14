@@ -19,17 +19,17 @@ import (
 // Request HTTP-request struct
 type Request struct {
 	method  string
-	url       *url.URL
+	url     string
 	header  http.Header
 	cookies []*http.Cookie
-	body  []byte
-	debug DebugHandler
+	body    []byte
+	debug   DebugHandler
 	options
 }
 
 type options struct {
 	clientTransport http.RoundTripper
-	clientTimeout time.Duration
+	clientTimeout   time.Duration
 }
 
 // String returns request body as string
@@ -39,7 +39,7 @@ func (r *Request) String() string {
 
 // Timeout set request timeout(sec)
 func (r *Request) Timeout(i int) *Request {
-	r.options.clientTimeout = time.Duration(i)*time.Second
+	r.options.clientTimeout = time.Duration(i) * time.Second
 	return r
 }
 
@@ -110,7 +110,7 @@ func (r *Request) GetMethod() string {
 }
 
 // GetURL returns request URL
-func (r *Request) GetURL() *url.URL {
+func (r *Request) GetURL() string {
 	return r.url
 }
 
@@ -155,7 +155,7 @@ func (r *Request) Do() (*Response, error) {
 		buf = bytes.NewBuffer(r.body)
 	}
 
-	request, err := http.NewRequest(r.method, r.url.String(), buf)
+	request, err := http.NewRequest(r.method, r.url, buf)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,12 @@ func (r *Request) client() (*http.Client, error) {
 		return nil, err
 	}
 
-	jar.SetCookies(r.url, r.cookies)
+	u, err := url.Parse(r.url)
+	if err != nil {
+		return nil, err
+	}
+
+	jar.SetCookies(u, r.cookies)
 	client := &http.Client{
 		Jar: jar,
 	}
@@ -196,7 +201,7 @@ func (r *Request) client() (*http.Client, error) {
 	}
 
 	if len(r.cookies) > 0 {
-		client.Jar.SetCookies(r.url, r.cookies)
+		client.Jar.SetCookies(u, r.cookies)
 	}
 
 	return client, nil
