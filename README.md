@@ -22,6 +22,7 @@ if err != nil {
 自定義
 ```go
 t := http.DefaultTransport.(*http.Transport)
+//t := http.DefaultTransport.(*http.Transport).Clone()
 //t.MaxIdleConns = 100
 t.MaxConnsPerHost = 100 //最大連線池數
 //t.MaxIdleConnsPerHost = 1
